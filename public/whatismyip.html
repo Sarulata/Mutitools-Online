@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What is My IP & System Info</title>
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0b0b0b, #1a1a1a);
+    color: #c8ffde;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  .container {
+    background: #111;
+    padding: 25px 30px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px #00ff66aa;
+    width: 450px;
+    text-align: left;
+  }
+  h2 {
+    text-align: center;
+    color: #c8ffde;
+    text-shadow: 0 0 8px #00ff66;
+    margin-bottom: 15px;
+  }
+  button {
+    display: block;
+    margin: 0 auto 15px auto;
+    background: transparent;
+    border: 2px solid #00ff66;
+    border-radius: 8px;
+    padding: 10px 18px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #c8ffde;
+    font-weight: bold;
+    box-shadow: 0 0 5px #00ff6644;
+    transition: 0.3s;
+  }
+  button:hover {
+    background: #00ff6644;
+    box-shadow: 0 0 15px #00ff66;
+    transform: translateY(-2px);
+  }
+  .result {
+    font-size: 14px;
+    color: #c8ffde;
+    background: #111;
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid #00ff66;
+    white-space: pre-wrap;
+    word-break: break-word;
+    box-shadow: inset 0 0 8px #00ff6644;
+  }
+  a {
+    display: inline-block;
+    margin-top: 15px;
+    text-decoration: none;
+    color: #00ff66;
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>🌐 What is My IP & System Info</h2>
+  <button onclick="getSystemInfo()">Check My Info</button>
+  <div class="result" id="result">Click the button to see your details</div>
+  <a href="index.html">⬅ Back to Home</a>
+</div>
+
+<script>
+async function getSystemInfo() {
+  const resultDiv = document.getElementById("result");
+  resultDiv.textContent = "Fetching information...";
+
+  try {
+    // 1. IP + Location + ISP
+    const response = await fetch('http://ip-api.com/json/');
+    const data = await response.json();
+
+    // 2. Browser + OS + User Agent
+    const userAgent = navigator.userAgent;
+    const platform = navigator.platform;
+
+    // 3. Browser name (simple detection)
+    let browser = "Unknown";
+    if(userAgent.includes("Chrome")) browser = "Chrome";
+    else if(userAgent.includes("Firefox")) browser = "Firefox";
+    else if(userAgent.includes("Safari")) browser = "Safari";
+    else if(userAgent.includes("Edge")) browser = "Edge";
+
+    // 4. Screen Resolution
+    const screenRes = `${window.screen.width}x${window.screen.height}`;
+
+    // 5. Latitude & Longitude (Geolocation)
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(position => {
+        const lat = position.coords.latitude.toFixed(4);
+        const lon = position.coords.longitude.toFixed(4);
+
+        resultDiv.textContent = `
+Location:
+ ${data.country}, ${data.regionName}, ${data.city}
+
+Internet Service Provider (ISP):
+ ${data.isp}
+
+Browser User Agent:
+ ${userAgent}
+
+Operating System:
+ ${platform}
+
+Browser:
+ ${browser}
+
+Screen Resolution:
+ ${screenRes}
+
+Latitude:
+ ${lat}
+
+Longitude:
+ ${lon}
+        `;
+      }, error => {
+        resultDiv.textContent = `Could not get location (Geolocation permission denied)`;
+      });
+    } else {
+      resultDiv.textContent = "Geolocation is not supported by this browser.";
+    }
+  } catch (error) {
+    resultDiv.textContent = "⚠️ Error fetching information!";
+  }
+}
+</script>
+
+</body>
+</html>

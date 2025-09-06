@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encoder/Decoder</title>
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0b0b0b, #1a1a1a);
+    color: #c8ffde;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    min-height: 100vh;
+  }
+  .container {
+    background: #111;
+    padding: 25px 30px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px #00ff66aa;
+    width: 450px;
+    text-align: center;
+  }
+  h2, h3 {
+    text-shadow: 0 0 8px #00ff66;
+    margin-bottom: 15px;
+  }
+  textarea, input[type="text"], input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 2px solid #00ff66;
+    border-radius: 8px;
+    background: #111;
+    color: #c8ffde;
+    font-family: monospace;
+    font-size: 14px;
+  }
+  button {
+    margin: 5px 0;
+    padding: 10px 15px;
+    border: 2px solid #00ff66;
+    border-radius: 8px;
+    background: transparent;
+    color: #c8ffde;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 0 5px #00ff6644;
+  }
+  button:hover {
+    background: #00ff6644;
+    box-shadow: 0 0 15px #00ff66;
+    transform: translateY(-2px);
+  }
+  .result {
+    margin-top: 10px;
+    padding: 8px;
+    border: 2px solid #00ff66;
+    border-radius: 8px;
+    min-height: 50px;
+    word-break: break-word;
+    background: #111;
+  }
+  a {
+    display: inline-block;
+    margin-top: 15px;
+    text-decoration: none;
+    color: #00ff66;
+  }
+</style>
+<script>
+  // Encode text
+  function encodeBase64() {
+    const text = document.getElementById("base64-input").value;
+    document.getElementById("base64-output").value = btoa(text);
+  }
+
+  // Decode text
+  function decodeBase64() {
+    const text = document.getElementById("base64-input").value;
+    try {
+      document.getElementById("base64-output").value = atob(text);
+    } catch {
+      document.getElementById("base64-output").value = "❌ Invalid Base64 string!";
+    }
+  }
+
+  // Encode file to Base64
+  function encodeFile() {
+    const fileInput = document.getElementById("file-input").files[0];
+    if (!fileInput) {
+      alert("⚠️ Sila pilih fail dulu!");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      document.getElementById("base64-output").value = event.target.result;
+    };
+    reader.readAsDataURL(fileInput);
+  }
+
+  // Decode Base64 back to file
+  function decodeFile() {
+    const base64Data = document.getElementById("base64-output").value;
+    if (!base64Data.startsWith("data:")) {
+      alert("⚠️ Format Base64 tidak lengkap (kena ada data URI)!");
+      return;
+    }
+
+    const fileName = document.getElementById("file-name").value || "output";
+
+    fetch(base64Data)
+      .then(res => res.blob())
+      .then(blob => {
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      })
+      .catch(() => alert("❌ Base64 tidak sah!"));
+  }
+</script>
+</head>
+<body>
+<div class="container">
+  <h2>🔑 Base64 Encoder/Decoder</h2>
+
+  <textarea id="base64-input" rows="4" placeholder="Masukkan text atau Base64 string di sini..."></textarea>
+  <br>
+  <button onclick="encodeBase64()">Encode Text ➝ Base64</button>
+  <button onclick="decodeBase64()">Decode Base64 ➝ Text</button>
+
+  <h3>📂 File Encode/Decode</h3>
+  <input type="file" id="file-input">
+  <button onclick="encodeFile()">Encode File ➝ Base64</button>
+  <br>
+  <input type="text" id="file-name" placeholder="Nama fail untuk decode (contoh: gambar.png)">
+  <button onclick="decodeFile()">Decode Base64 ➝ Download File</button>
+
+  <h3>📜 Output</h3>
+  <textarea id="base64-output" rows="8" placeholder="Hasil akan keluar di sini..."></textarea>
+
+  <a href="index.html">⬅️ Back to Home</a>
+</div>
+</body>
+</html>

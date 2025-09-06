@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IP Subnet Calculator</title>
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0b0b0b, #1a1a1a);
+    color: #c8ffde;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    min-height: 100vh;
+  }
+  .container {
+    background: #111;
+    padding: 25px 30px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px #00ff66aa;
+    width: 450px;
+    text-align: center;
+  }
+  h2 {
+    margin-bottom: 15px;
+    text-shadow: 0 0 8px #00ff66;
+  }
+  input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 2px solid #00ff66;
+    border-radius: 8px;
+    background: #111;
+    color: #c8ffde;
+    font-family: monospace;
+    font-size: 14px;
+  }
+  button {
+    margin: 5px 0;
+    padding: 10px 15px;
+    border: 2px solid #00ff66;
+    border-radius: 8px;
+    background: transparent;
+    color: #c8ffde;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 0 5px #00ff6644;
+  }
+  button:hover {
+    background: #00ff6644;
+    box-shadow: 0 0 15px #00ff66;
+    transform: translateY(-2px);
+  }
+  pre {
+    background: #111;
+    padding: 10px;
+    border: 2px solid #00ff66;
+    border-radius: 8px;
+    word-break: break-word;
+    min-height: 100px;
+  }
+  a {
+    display: inline-block;
+    margin-top: 15px;
+    text-decoration: none;
+    color: #00ff66;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>🌐 IP Subnet Calculator</h2>
+  <label>IP Address/CIDR (contoh: 192.168.1.10/24)</label><br>
+  <input type="text" id="ip-cidr" placeholder="192.168.1.10/24">
+  <br>
+  <button onclick="calculateSubnet()">Kira</button>
+
+  <h3>📊 Hasil:</h3>
+  <pre id="result"></pre>
+
+  <button onclick="window.location.href='index.html'">⬅️ Back to Home</button>
+</div>
+
+<script>
+function calculateSubnet() {
+  const input = document.getElementById("ip-cidr").value.trim();
+  if (!input.includes("/")) {
+    document.getElementById("result").textContent = "❌ Masukkan format: IP/CIDR (contoh: 192.168.1.10/24)";
+    return;
+  }
+
+  const [ip, cidrStr] = input.split("/");
+  const cidr = parseInt(cidrStr);
+  const ipParts = ip.split(".").map(Number);
+
+  if (ipParts.length !== 4 || ipParts.some(isNaN) || cidr < 0 || cidr > 32) {
+    document.getElementById("result").textContent = "❌ Input tidak sah!";
+    return;
+  }
+
+  const maskBinary = "1".repeat(cidr).padEnd(32, "0");
+  const maskParts = [];
+  for (let i = 0; i < 32; i += 8) {
+    maskParts.push(parseInt(maskBinary.slice(i, i + 8), 2));
+  }
+
+  const ipBinary = ipParts.map(o => o.toString(2).padStart(8, "0")).join("");
+  const networkBinary = ipBinary.slice(0, cidr).padEnd(32, "0");
+  const broadcastBinary = ipBinary.slice(0, cidr).padEnd(32, "1");
+
+  const network = [];
+  const broadcast = [];
+  for (let i = 0; i < 32; i += 8) {
+    network.push(parseInt(networkBinary.slice(i, i + 8), 2));
+    broadcast.push(parseInt(broadcastBinary.slice(i, i + 8), 2));
+  }
+
+  const firstUsable = [...network];
+  firstUsable[3] += 1;
+  const lastUsable = [...broadcast];
+  lastUsable[3] -= 1;
+
+  const firstOctet = ipParts[0];
+  let ipClass = "";
+  if (firstOctet <= 126) ipClass = "A";
+  else if (firstOctet <= 191) ipClass = "B";
+  else if (firstOctet <= 223) ipClass = "C";
+  else if (firstOctet <= 239) ipClass = "D (Multicast)";
+  else ipClass = "E (Experimental)";
+
+  const totalHosts = Math.pow(2, 32 - cidr);
+  const usableHosts = totalHosts > 2 ? totalHosts - 2 : 0;
+
+  document.getElementById("result").textContent =
+    `🌐 IP Address: ${ip}\n` +
+    `🛡 Subnet Mask: ${maskParts.join(".")}\n` +
+    `🔢 CIDR: /${cidr}\n` +
+    `🏷 IP Class: ${ipClass}\n\n` +
+    `📡 Network Address: ${network.join(".")}\n` +
+    `📢 Broadcast Address: ${broadcast.join(".")}\n` +
+    `👤 First Usable Host: ${firstUsable.join(".")}\n` +
+    `👥 Last Usable Host: ${lastUsable.join(".")}\n\n` +
+    `📊 Total Hosts: ${totalHosts}\n` +
+    `✅ Usable Hosts: ${usableHosts}`;
+}
+</script>
+</body>
+</html>
