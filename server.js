@@ -4,7 +4,9 @@ import { fileURLToPath } from "url";
 import whois from "whois-json";
 
 const app = express();
-const port = 4000;
+
+// ✅ Railway/Render gunakan PORT dari environment
+const PORT = process.env.PORT || 4000;
 
 // Setup __dirname untuk ES Module
 const __filename = fileURLToPath(import.meta.url);
@@ -18,7 +20,7 @@ app.use(express.static(path.join(__dirname, "public")));
    Domain Name Checker API
 ========================= */
 app.get("/api/check-domain", async (req, res) => {
-  const domain = req.query.domain; // 🔑 guna 'domain'
+  const domain = req.query.domain; // 🔑 parameter ?domain=
   if (!domain) return res.status(400).json({ error: "No domain provided" });
 
   try {
@@ -43,6 +45,6 @@ app.get("/api/check-domain", async (req, res) => {
 });
 
 // Start server
-app.listen(port, () => {
-  console.log(`✅ Server running at http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`✅ Server running at http://localhost:${PORT}`);
 });
